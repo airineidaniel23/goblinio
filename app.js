@@ -3,10 +3,10 @@ var app = express();
 var serv = require('http').Server(app);
 
 app.get('/', function(req, res) {
-    res.sendFile(__dirname + '/testLocal2/index.html');
+    res.sendFile(__dirname + '/clientM/index.html');
 });
 app.use('/client', express.static(__dirname + '/client'));
-app.use('/testLocal2', express.static(__dirname + '/testLocal2'));
+app.use('/clientM', express.static(__dirname + '/clientM'));
 
 serv.listen(2000);
 console.log("Server started");
