@@ -8,7 +8,7 @@ app.get('/', function(req, res) {
 app.use('/client', express.static(__dirname + '/client'));
 app.use('/clientM', express.static(__dirname + '/clientM'));
 
-serv.listen(2000);
+serv.listen(process.env.PORT || 5000);
 console.log("Server started");
 
 var io = require('socket.io')(serv, {});
