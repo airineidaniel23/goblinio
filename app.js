@@ -23,13 +23,18 @@ var Player = function(id) {
         pL: false,
         pU: false,
         pD: false,
+        facingLeft: false,
         maxSpeed: 10  
     }
     self.updatePosition = function() {
-        if(self.pR)
+        if(self.pR) {
             self.x += self.maxSpeed;
-        if(self.pL)
+            self.facingLeft = false;
+        }
+        if(self.pL) {
             self.x -= self.maxSpeed;
+            self.facingLeft = true;
+        }
         if(self.pU)
             self.y -= self.maxSpeed;
         if(self.pD)

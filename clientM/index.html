@@ -22,6 +22,9 @@
     socket.on('newPositions', function(data) {
         ctx.clearRect(0,0,500,500);
         for(var i  = 0; i < data.length; i ++) {
+            if (data[i].facingLeft)
+                usedGoblin = goblinL;
+            else usedGoblin = goblinR;
             ctx.drawImage(usedGoblin, data[i].x - 50, data[i].y -50 , 100, 100);  
             //ctx.fillText(data[i].number, data[i].x, data[i].y);
         }
@@ -30,13 +33,13 @@
     document.onkeydown = function(event) {
         if(event.keyCode == 68) {
             socket.emit('keyPress', {inputId: 'right', state: true});
-            usedGoblin = goblinR;
+            //usedGoblin = goblinR;
         }
         else if(event.keyCode == 83)
             socket.emit('keyPress', {inputId: 'down', state: true});
         else if(event.keyCode == 65) {
             socket.emit('keyPress', {inputId: 'left', state: true});
-            usedGoblin = goblinL;
+            //usedGoblin = goblinL;
         }
         else if(event.keyCode == 87)
             socket.emit('keyPress', {inputId: 'up', state: true});   
