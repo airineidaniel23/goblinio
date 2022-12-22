@@ -77,6 +77,7 @@ setInterval(function() {
         pack.push({
             x: player.x,
             y: player.y,
+            facingLeft: player.facingLeft,
             number: player.number
         });
     }

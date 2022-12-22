@@ -10,6 +10,9 @@
   <div style="display:none;">
     <img id="sourceL" src="clientM/img/goblinL.png" width="300" height="227" />
   </div>
+  <div style="display:none;">
+    <img id="jungle" src="clientM/img/jungle.jfif" width="300" height="227" />
+  </div>
 <script src="/socket.io/socket.io.js"></script>
 <script>
     var socket = io();
@@ -18,9 +21,11 @@
     ctx.font = '30px Arial';
     var goblinR = document.getElementById("sourceR");
     var goblinL = document.getElementById("sourceL");
+    var jungle = document.getElementById("jungle");
     var usedGoblin = goblinR;
     socket.on('newPositions', function(data) {
         ctx.clearRect(0,0,500,500);
+        ctx.drawImage(jungle, 0, 0, 500, 500); 
         for(var i  = 0; i < data.length; i ++) {
             if (data[i].facingLeft)
                 usedGoblin = goblinL;
