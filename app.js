@@ -6,6 +6,7 @@ app.get('/', function(req, res) {
     res.sendFile(__dirname + '/testLocal2/index.html');
 });
 app.use('/client', express.static(__dirname + '/client'));
+app.use('/testLocal2', express.static(__dirname + '/testLocal2'));
 
 serv.listen(2000);
 console.log("Server started");
