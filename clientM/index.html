@@ -35,6 +35,16 @@
         }
     });
 
+    document.onmousemove = function(event) {
+        const mouseX = event.offsetX;
+        const mouseY = event.offsetY;
+        socket.emit('mouseMoved', {x: mouseX, y: mouseY});
+  };
+
+    document.onmousedown = function(event) {
+        
+    }
+
     document.onkeydown = function(event) {
         if(event.keyCode == 68) {
             socket.emit('keyPress', {inputId: 'right', state: true});
