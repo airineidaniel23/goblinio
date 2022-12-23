@@ -1,5 +1,5 @@
 
-<canvas id="ctx" width="500" height="500" style="border:1px solid #000000"></canvas>
+<canvas id="ctx" width="1300" height="600" style="border:1px solid #000000"></canvas>
   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/p5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.dom.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.sound.min.js"></script> -->
@@ -13,48 +13,105 @@
   <div style="display:none;">
     <img id="jungle" src="clientM/img/jungle.jfif" width="300" height="227" />
   </div>
+  <div style="display:none;">
+    <img id="tile" src="clientM/img/tile.png" width="70" height="70" />
+  </div>
 <script src="/socket.io/socket.io.js"></script>
 <script>
     var socket = io();
     var ctx = document.getElementById("ctx").
     getContext("2d");
     ctx.font = '30px Arial';
+    var tr = 0;
+    var width = 1300;
+    var height = 600;
+    var characterWidth = 100;
+    var characterHeight = 100;
+    var groundWidth = 1360; //must be a multiple of tileSize and synced with server values
+    var groundHeight = 240;
+    var tileSize = 80;
+    var gridWidth = groundWidth / tileSize;
+    var gridHeight = groundHeight / tileSize;
+    var myX = width/2;
+    var myY = height/2;
+    var lastMouseX = width/2;
+    var lastMouseY = height/2;
     var goblinR = document.getElementById("sourceR");
     var goblinL = document.getElementById("sourceL");
     var jungle = document.getElementById("jungle");
+    var tile = document.getElementById("tile");
     var usedGoblin = goblinR;
+    var mousePressed = false;
+    var hoveredTile = {
+            x: 0,
+            y: 0, // this is tile number not actual coord
+            enabled: false
+        }
     socket.on('newPositions', function(data) {
-        ctx.clearRect(0,0,500,500);
-        ctx.drawImage(jungle, 0, 0, 500, 500); 
-        for(var i  = 0; i < data.length; i ++) {
-            if (data[i].facingLeft)
+        ctx.clearRect(0,0,width,height);
+        ctx.drawImage(jungle, 0, 0, width, height); 
+        myX = data.personal.x;
+        myY = data.personal.y;
+          
+        for(var i  = 0; i < data.players.length; i ++) {
+            if (data.players[i].facingLeft)
                 usedGoblin = goblinL;
             else usedGoblin = goblinR;
-            ctx.drawImage(usedGoblin, data[i].x - 50, data[i].y -50 , 100, 100);  
-            //ctx.fillText(data[i].number, data[i].x, data[i].y);
+            ctx.drawImage(usedGoblin, data.players[i].x - characterWidth/2,
+                            data.players[i].y - characterHeight/2 , characterWidth, characterHeight);  
+        }
+        
+        for (var i = 0; i < groundHeight / tileSize; i ++) {
+            for (var j = 0; j < groundWidth / tileSize; j ++) {
+                if (data.ground[i][j].mined == 0) {
+                    ctx.drawImage(tile, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);  
+                }
+            }
+        }
+
+        if (hoveredTile.enabled) {
+            ctx.beginPath();
+            ctx.rect(hoveredTile.x * tileSize, (height - groundHeight) + hoveredTile.y * tileSize , tileSize, tileSize);
+            if (detectMining())
+                ctx.fill();
+            else ctx.stroke();
         }
     });
+
+
+    document.body.onmousedown = function(event) {
+        const mouseX = event.offsetX;
+        const mouseY = event.offsetY;
+        mousePressed = true;
+    }
+
+    document.body.onmouseup = function(event) {
+        mousePressed = false;
+    }
 
     document.onmousemove = function(event) {
         const mouseX = event.offsetX;
         const mouseY = event.offsetY;
+
+        if (mouseX > 0 && mouseX < groundWidth && mouseY < height && mouseY > (height - groundHeight)) {
+            hoveredTile.enabled = true;
+            hoveredTile.x = Math.floor(mouseX/groundWidth * gridWidth);
+            hoveredTile.y = Math.floor((mouseY - (height - groundHeight))/groundHeight * gridHeight);
+        } else {
+            hoveredTile.enabled = false;
+        }
+
         socket.emit('mouseMoved', {x: mouseX, y: mouseY});
   };
-
-    document.onmousedown = function(event) {
-        
-    }
 
     document.onkeydown = function(event) {
         if(event.keyCode == 68) {
             socket.emit('keyPress', {inputId: 'right', state: true});
-            //usedGoblin = goblinR;
         }
         else if(event.keyCode == 83)
             socket.emit('keyPress', {inputId: 'down', state: true});
         else if(event.keyCode == 65) {
             socket.emit('keyPress', {inputId: 'left', state: true});
-            //usedGoblin = goblinL;
         }
         else if(event.keyCode == 87)
             socket.emit('keyPress', {inputId: 'up', state: true});   
@@ -73,9 +130,9 @@
     }
    
     
+    function detectMining() {
+        xDist = myX  - (hoveredTile.x * tileSize + tileSize/2);
+        yDist = myY  - ((height - groundHeight) + hoveredTile.y * tileSize + tileSize/2);
+        return (Math.sqrt(xDist * xDist + yDist * yDist) < 100)  && mousePressed && hoveredTile.enabled;
+    }
 </script>
-<!-- <body>
-  <script src="clientM/sketch.js"></script>
-  <script src="clientM/blob.js"></script>
-</body> -->
-

@@ -14,23 +14,28 @@ var socket_list = {};
 var player_list = {};
 var pack = [];
 
-const width = 500;
-const height = 500;
-const GRID_WIDTH = 10;
-const GRID_HEIGHT = 10;
+const width = 1300;
+const height = 600;
+var groundWidth = 1360;
+var groundHeight = 240;
+var tileSize = 80;
+var playerHeight = 100;
+var playerWidth = 100;
+const GRID_WIDTH = groundWidth / tileSize; // adimensionala
+const GRID_HEIGHT = groundHeight / tileSize;
 
 var Player = function(id) {
     var self = {
-        x: 250,
-        y: 250,
+        x: width/2,
+        y: height/2,
         id: id,
         number: "" + Math.floor(10 * Math.random()),
         pR: false,
         pL: false,
         pU: false,
         pD: false,
-        mouseX: 251,
-        mouseY: 250,
+        mouseX: width/2,
+        mouseY: height/2,
         jumping: false,
         facingLeft: false,
         speed: 0,
@@ -49,11 +54,14 @@ var Player = function(id) {
         if (self.mouseX < self.x)
             self.facingLeft = true;
         else self.facingLeft = false;
-        if (self.y > width - 100) {
+        if (self.y > height - groundHeight - playerHeight / 2) { //we compare with playerHeight/2 because 
+            //character is techincally always half burried but we draw him further up so we can pretend
+            // his coordinates are from the center, not the upper left corner like the tiles
             if (self.jumping == true) {
                 self.jumping = false;
                 self.acc = 0;
                 self.speed = 0;
+                self.y = height - groundHeight - playerHeight / 2 + 1;
             }
         } else if (self.jumping == false) {
             self.jumping = true;
@@ -64,7 +72,7 @@ var Player = function(id) {
     return self;
 }
 
-let ground = [];
+var ground = [];
 for (let i = 0; i < GRID_HEIGHT; i++) {
   ground[i] = [];
   for (let j = 0; j < GRID_WIDTH; j++) {
@@ -74,9 +82,8 @@ for (let i = 0; i < GRID_HEIGHT; i++) {
     };
   }
 }
-
 var io = require('socket.io')(serv, {});
-io.sockets.on('connection', function(socket) {
+io.sockets.on('connection', function(socket) { // aici tratez incoming
     console.log("socket connection");
     socket.id = Math.random();
     socket_list[socket.id] = socket;
@@ -106,20 +113,29 @@ io.sockets.on('connection', function(socket) {
     });
 });
 
-setInterval(function() {
+setInterval(function() { //aici tratez emitting
     pack = [];
+    var g = 1;
+    var y = 2;
     for (var i in player_list) {
-        var player = player_list[i];
-        player.updatePosition();
+        var tempPlayer = player_list[i];
+        tempPlayer.updatePosition();
         pack.push({
-            x: player.x,
-            y: player.y,
-            facingLeft: player.facingLeft,
-            number: player.number
+            x: tempPlayer.x,
+            y: tempPlayer.y,
+            facingLeft: tempPlayer.facingLeft,
+            number: tempPlayer.number
         });
     }
+
+    var serverData = {
+        players: pack,
+        ground: ground
+    }
+    
     for(var i in socket_list) {
         var socket = socket_list[i];
-        socket.emit('newPositions', pack);
+        serverData.personal = player_list[socket.id];
+        socket.emit('newPositions', serverData);
     }
-}, 1000/25);
+}, 25);
