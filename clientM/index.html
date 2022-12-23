@@ -72,9 +72,9 @@
         for (var i = 0; i < groundHeight / tileSize; i ++) {
             for (var j = 0; j < groundWidth / tileSize; j ++) {
                 if (!data.ground[i][j].mined) {
-                    //drawImageCentered(tile, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);  
+                    drawImageCentered(tile, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);  
                    
-                    drawRectCentered(j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize, "fill");
+                    //drawRectCentered(j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize, "fill");
                 }
             }
         }
