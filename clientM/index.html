@@ -1,5 +1,5 @@
 
-<canvas id="ctx" width="1300" height="600" style="border:1px solid #000000"></canvas>
+<canvas id="ctx" width="1300" height="700" style="border:1px solid #000000"></canvas>
   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/p5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.dom.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.sound.min.js"></script> -->
@@ -24,9 +24,11 @@
     ctx.font = '30px Arial';
     var tr = 0;
     var width = 1300;
-    var height = 600;
+    var height = 700;
     var characterWidth = 100;
     var characterHeight = 100;
+    var hitboxRatioXHalf = 0.3;
+    var hitboxRatioUpperHalf = 0.5;
     var groundWidth = 1360; //must be a multiple of tileSize and synced with server values
     var groundHeight = 240;
     var tileSize = 80;
@@ -58,12 +60,16 @@
                 usedGoblin = goblinL;
             else usedGoblin = goblinR;
             ctx.drawImage(usedGoblin, data.players[i].x - characterWidth/2,
-                            data.players[i].y - characterHeight/2 , characterWidth, characterHeight);  
+                            data.players[i].y - characterHeight/2 , characterWidth, characterHeight);
+            ctx.beginPath();
+            ctx.rect(myX - characterWidth * hitboxRatioXHalf, myY - characterHeight / 2 * (1 - hitboxRatioUpperHalf),
+                     characterWidth * 2 * hitboxRatioXHalf, characterHeight * (0.5 + 0.5 * hitboxRatioUpperHalf));
+            ctx.stroke();
         }
         
         for (var i = 0; i < groundHeight / tileSize; i ++) {
             for (var j = 0; j < groundWidth / tileSize; j ++) {
-                if (data.ground[i][j].mined == 0) {
+                if (!data.ground[i][j].mined) {
                     ctx.drawImage(tile, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);  
                 }
             }
