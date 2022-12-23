@@ -48,7 +48,8 @@ var Player = function(id) {
         hoveredTile: {
             x: 0,
             y: 0, // this is tile number not actual coord
-            enabled: false
+            enabled: false,
+            isBeingMined: false
         }
     }
     self.updatePosition = function() {
@@ -178,6 +179,7 @@ setInterval(function() { //aici tratez emitting
     for(var i in socket_list) {
         var socket = socket_list[i];
         serverData.personal = player_list[socket.id];
+        serverData.personal.hoveredTile.isBeingMined = detectMining(serverData.personal);
         socket.emit('newPositions', serverData);
     }
 }, 25);
@@ -283,4 +285,10 @@ function mouseMoved(player) {
     } else {
         player.hoveredTile.enabled = false;
     }
+}
+
+function detectMining(player) { //hoveredTile mousePressed from server
+    xDist = player.x  - (player.hoveredTile.x * tileSize + tileSize/2);
+    yDist = player.y  - ((height - groundHeight) + player.hoveredTile.y * tileSize + tileSize/2);
+    return (Math.sqrt(xDist * xDist + yDist * yDist) < 100)  && player.mousePressed && player.hoveredTile.enabled;
 }

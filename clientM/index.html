@@ -73,15 +73,7 @@
         if (ht.enabled && !data.ground[ht.y][ht.x].mined) {
             ctx.beginPath();
             ctx.rect(ht.x * tileSize, (height - groundHeight) + ht.y * tileSize , tileSize, tileSize);
-            if (detectMining(ht, data.personal.mousePressed))
-                ctx.fill();
-            else ctx.stroke();
-        }
-        if (ht.enabled && !data.ground[ht.y][ht.x].mined) {
-            ctx.beginPath();
-            ctx.strokeStyle = "black";
-            ctx.rect(ht.x * tileSize, (height - groundHeight) + ht.y * tileSize , tileSize, tileSize);
-            if (detectMining(ht, data.personal.mousePressed))
+            if (ht.isBeingMined)
                 ctx.fill();
             else ctx.stroke();
         }
@@ -128,10 +120,5 @@
             socket.emit('keyPress', {inputId: 'up', state: false});   
     }
    
-    
-    function detectMining(ht, mp) { //hoveredTile mousePressed from server
-        xDist = myX  - (ht.x * tileSize + tileSize/2);
-        yDist = myY  - ((height - groundHeight) + ht.y * tileSize + tileSize/2);
-        return (Math.sqrt(xDist * xDist + yDist * yDist) < 100)  && mp && ht.enabled;
-    }
+
 </script>
