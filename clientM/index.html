@@ -43,12 +43,7 @@
     var jungle = document.getElementById("jungle");
     var tile = document.getElementById("tile");
     var usedGoblin = goblinR;
-    var mousePressed = false;
-    var hoveredTile = {
-            x: 0,
-            y: 0, // this is tile number not actual coord
-            enabled: false
-        }
+
     socket.on('newPositions', function(data) {
         ctx.clearRect(0,0,width,height);
         ctx.drawImage(jungle, 0, 0, width, height); 
@@ -74,11 +69,19 @@
                 }
             }
         }
-
-        if (hoveredTile.enabled && !data.ground[hoveredTile.y][hoveredTile.x].mined) {
+        ht = data.personal.hoveredTile;
+        if (ht.enabled && !data.ground[ht.y][ht.x].mined) {
             ctx.beginPath();
-            ctx.rect(hoveredTile.x * tileSize, (height - groundHeight) + hoveredTile.y * tileSize , tileSize, tileSize);
-            if (detectMining())
+            ctx.rect(ht.x * tileSize, (height - groundHeight) + ht.y * tileSize , tileSize, tileSize);
+            if (detectMining(ht, data.personal.mousePressed))
+                ctx.fill();
+            else ctx.stroke();
+        }
+        if (ht.enabled && !data.ground[ht.y][ht.x].mined) {
+            ctx.beginPath();
+            ctx.strokeStyle = "black";
+            ctx.rect(ht.x * tileSize, (height - groundHeight) + ht.y * tileSize , tileSize, tileSize);
+            if (detectMining(ht, data.personal.mousePressed))
                 ctx.fill();
             else ctx.stroke();
         }
@@ -86,27 +89,17 @@
 
 
     document.body.onmousedown = function(event) {
-        const mouseX = event.offsetX;
-        const mouseY = event.offsetY;
-        mousePressed = true;
+        socket.emit('mouseDown');
     }
 
     document.body.onmouseup = function(event) {
         mousePressed = false;
+        socket.emit('mouseUp');
     }
 
     document.onmousemove = function(event) {
         const mouseX = event.offsetX;
         const mouseY = event.offsetY;
-
-        if (mouseX > 0 && mouseX < groundWidth && mouseY < height && mouseY > (height - groundHeight)) {
-            hoveredTile.enabled = true;
-            hoveredTile.x = Math.floor(mouseX/groundWidth * gridWidth);//adimensional
-            hoveredTile.y = Math.floor((mouseY - (height - groundHeight))/groundHeight * gridHeight);
-        } else {
-            hoveredTile.enabled = false;
-        }
-
         socket.emit('mouseMoved', {x: mouseX, y: mouseY});
   };
 
@@ -136,9 +129,9 @@
     }
    
     
-    function detectMining() {
-        xDist = myX  - (hoveredTile.x * tileSize + tileSize/2);
-        yDist = myY  - ((height - groundHeight) + hoveredTile.y * tileSize + tileSize/2);
-        return (Math.sqrt(xDist * xDist + yDist * yDist) < 100)  && mousePressed && hoveredTile.enabled;
+    function detectMining(ht, mp) { //hoveredTile mousePressed from server
+        xDist = myX  - (ht.x * tileSize + tileSize/2);
+        yDist = myY  - ((height - groundHeight) + ht.y * tileSize + tileSize/2);
+        return (Math.sqrt(xDist * xDist + yDist * yDist) < 100)  && mp && ht.enabled;
     }
 </script>

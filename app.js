@@ -39,11 +39,17 @@ var Player = function(id) {
         pD: false,
         mouseX: width/2,
         mouseY: height/2,
+        mousePressed: false,
         jumping: false,
         facingLeft: false,
         speed: 0, //vertical
         acc: 1,
-        maxSpeed: 10  //horizontal 
+        maxSpeed: 10,  //horizontal 
+        hoveredTile: {
+            x: 0,
+            y: 0, // this is tile number not actual coord
+            enabled: false
+        }
     }
     self.updatePosition = function() {
         var groundUnder = checkGroundUnder(self); //Y of tile we are standing on
@@ -137,6 +143,15 @@ io.sockets.on('connection', function(socket) { // aici tratez incoming
     socket.on('mouseMoved', function(data) {
         player.mouseX = data.x;
         player.mouseY = data.y;
+        mouseMoved(player);     
+    });
+
+    socket.on('mouseDown', function(data) {
+        player.mousePressed = true;
+    });
+
+    socket.on('mouseUp', function(data) {
+        player.mousePressed = false;
     });
 });
 
@@ -167,6 +182,9 @@ setInterval(function() { //aici tratez emitting
     }
 }, 25);
 
+
+
+//=======================================COLLISIONS===========================
 
 function checkGroundUnder(player) { //return Y of tile(s) that player is standing on, or false if there are none
     //we use playerHeight/2 because 
@@ -252,4 +270,17 @@ function checkCeiling(x, y) {
     if (upperRight)
         return upperRight;
     return false;
+}
+
+//=====================================MOUSE======================================
+
+function mouseMoved(player) {
+    if (player.mouseX > 0 && player.mouseX < groundWidth && player.mouseY < height &&
+        player.mouseY > (height - groundHeight)) {
+        player.hoveredTile.enabled = true;
+        player.hoveredTile.x = Math.floor(player.mouseX/groundWidth * gridWidth);//adimensional
+        player.hoveredTile.y = Math.floor((player.mouseY - (height - groundHeight))/groundHeight * gridHeight);
+    } else {
+        player.hoveredTile.enabled = false;
+    }
 }
