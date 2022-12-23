@@ -47,7 +47,7 @@ var Player = function(id) {
     }
     self.updatePosition = function() {
         var groundUnder = checkGroundUnder(self); //Y of tile we are standing on
-
+        
         if(self.pR) {
             var rightWall = checkRightWall(self.x + self.maxSpeed, self.y);
             if (!rightWall)
@@ -59,9 +59,9 @@ var Player = function(id) {
             if (!leftWall)
                 self.x -= self.maxSpeed;
             // we add tileSize because leftWall is coord of left side of left tile(far away from character)
-            else self.x = leftWall + tileSize + playerWidth * hitboxRatioXHalf;
+            else self.x = leftWall + tileSize + playerWidth * hitboxRatioXHalf; //these could be removed
         }
-        if(self.pU && self.jumping == false) {
+        if(self.pU && self.jumping == false && groundUnder) { //daca nu pun groundUnder apare frame perfect bug care te catapulteaza
             self.speed = - 14;
             self.acc = 1;
             self.y = groundUnder - playerHeight / 2 - 1;//we teleport player above ground
@@ -103,6 +103,11 @@ for (let i = 0; i < gridHeight; i++) {
 ground[0][5].mined = true;
 ground[1][5].mined = true;
 ground[1][6].mined = true;
+ground[1][7].mined = true;
+ground[1][8].mined = true;
+ground[1][9].mined = true;
+ground[0][9].mined = true;
+ground[0][10].mined = true;
 
 var io = require('socket.io')(serv, {});
 io.sockets.on('connection', function(socket) { // aici tratez incoming
@@ -202,43 +207,46 @@ function pointInTile(x, y, accessor) {  //returns X/Y of tile which includes the
 }
 
 function checkLeftWall(x,y) { //returns true if left wall blocks
-    y -= playerHeight/ 4; //player is currently 'burried' 1 pixel so we know he is standing, so
     //we dont check the lower part of him because it will signal a collision, even though it is hitbox
     //the smaller this difference is, the later we will get a "false fall through ground",
     // but if we make it too small, we glitch when we jump because it will be a "false false through ground"
     x = x - playerWidth * hitboxRatioXHalf; //basically creating a hitbox
     if (x < 1)
         return 1 - tileSize; //we expect for left wall to be one tile size away because coordinates are upperleft corners (exception is character)
-    var lowerLeft = pointInTile(x, y + playerHeight / 2, "x");
+    // we subtract and add playerHeight/4 because we basically have two hitboxes:
+    //one for up down movement and one for left right. We want to avoid detecting a ceiling, and 
+    //we hope the ceiling function will stop us before we reach 1/4, if we are more than 1/4 in, we are probably
+    //coming at it from the side
+    var lowerLeft = pointInTile(x, y + playerHeight / 2 - playerHeight / 4, "x");
     if (lowerLeft)
         return lowerLeft;
-    var upperLeft = pointInTile(x, y - playerHeight / 2  *(1- hitboxRatioUpperHalf - 0.5), "x");
+    var upperLeft = pointInTile(x, y - playerHeight / 2  *(1- hitboxRatioUpperHalf) + playerHeight / 4, "x");
     if (upperLeft)
         return upperLeft;
     return false;
 }
 
 function checkRightWall(x,y) {
-    y -= playerHeight / 4;
     x = x + playerWidth * hitboxRatioXHalf;
     if (x >width)
         return width;
-    var lowerRight = pointInTile(x, y + playerHeight / 2, "x");
+    var lowerRight = pointInTile(x, y + playerHeight / 2 - playerHeight / 4, "x");
     if (lowerRight)
         return lowerRight;
     // we subtract half a player height because of the way the character is drawn. we
     //add the hitboxratio to "lower the ceiling" (this is only the upper point)
     // and we add another 0.5 to compensate for the above line where we subtracted 
     // playerHeight /4 (that is only needed for lower checking, we should add it in there instead of compensating)
-    var upperRight = pointInTile(x, y - playerHeight / 2  *(1- hitboxRatioUpperHalf - 0.5), "x");
+    var upperRight = pointInTile(x, y - playerHeight / 2  *(1- hitboxRatioUpperHalf ) + playerHeight / 4, "x");
     if (upperRight)
         return upperRight;
     return false;
 }
 
 function checkCeiling(x, y) {
-    var upperLeft =  pointInTile(x, y - playerHeight / 2  *(1- hitboxRatioUpperHalf - 0.5));
-    var upperRight = pointInTile(x + playerWidth * hitboxRatioXHalf, y - playerHeight / 2  *(1- hitboxRatioUpperHalf - 0.5));
+    //we do 0.95 because up to that point we might be burried in the wall for teleport prevention
+    var upperLeft =  pointInTile(x - playerWidth * hitboxRatioXHalf * 0.95, y - playerHeight / 2  *(1- hitboxRatioUpperHalf - 0.5));
+    var upperRight = pointInTile(x + playerWidth * hitboxRatioXHalf * 0.95, y - playerHeight / 2  *(1- hitboxRatioUpperHalf - 0.5));
     if (upperLeft)
         return upperLeft;
     if (upperRight)
