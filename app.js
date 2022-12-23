@@ -21,7 +21,7 @@ var groundWidth = 2000;
 var groundHeight = 800;
 var hitboxRatioXHalf = 0.3;
 var hitboxRatioUpperHalf = 0.5;
-var tileSize = 80;
+var tileSize = 10;
 var playerHeight = 100;
 var playerWidth = 100;
 var gridWidth = groundWidth / tileSize; // adimensionala
@@ -104,8 +104,8 @@ for (let i = 0; i < gridHeight; i++) {
     ground[i][j] = {
       mined: false,  // Whether this tile has been mined or not
       value: 0, // The value of this tile (e.g. ore amount)
-      hp: 10,
-      maxHp: 10   
+      hp: 1,
+      maxHp: 1   
     };
   }
 }
