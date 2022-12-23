@@ -15,10 +15,10 @@ var player_list = {};
 var pack = [];
 
 var tr = 0;
-const width = 1300;
-const height = 700;
-var groundWidth = 1360;
-var groundHeight = 240;
+const width = 2000;
+const height = 1500;
+var groundWidth = 2000;
+var groundHeight = 800;
 var hitboxRatioXHalf = 0.3;
 var hitboxRatioUpperHalf = 0.5;
 var tileSize = 80;
@@ -30,7 +30,7 @@ var tileX, tileY;
 var Player = function(id) {
     var self = {
         x: width/2,
-        y: height/2,
+        y: (height - groundHeight - playerHeight * 2),
         id: id,
         number: "" + Math.floor(10 * Math.random()),
         pR: false,
@@ -103,18 +103,12 @@ for (let i = 0; i < gridHeight; i++) {
   for (let j = 0; j < gridWidth; j++) {
     ground[i][j] = {
       mined: false,  // Whether this tile has been mined or not
-      value: 0       // The value of this tile (e.g. ore amount)
+      value: 0, // The value of this tile (e.g. ore amount)
+      hp: 10,
+      maxHp: 10   
     };
   }
 }
-ground[0][5].mined = true;
-ground[1][5].mined = true;
-ground[1][6].mined = true;
-ground[1][7].mined = true;
-ground[1][8].mined = true;
-ground[1][9].mined = true;
-ground[0][9].mined = true;
-ground[0][10].mined = true;
 
 var io = require('socket.io')(serv, {});
 io.sockets.on('connection', function(socket) { // aici tratez incoming
@@ -179,7 +173,16 @@ setInterval(function() { //aici tratez emitting
     for(var i in socket_list) {
         var socket = socket_list[i];
         serverData.personal = player_list[socket.id];
-        serverData.personal.hoveredTile.isBeingMined = detectMining(serverData.personal);
+        let ht = serverData.personal.hoveredTile;
+        if (ht.enabled) {
+            ht.isBeingMined = detectMining(serverData.personal);
+            if (ground[ht.y][ht.x].hp == 0) {
+                ground[ht.y][ht.x].mined = true;
+                ht.enabled = false;
+            } else if (ht.isBeingMined) {// E GRESIIIIIIIT
+                ground[ht.y][ht.x].hp--;
+            }
+        }
         socket.emit('newPositions', serverData);
     }
 }, 25);
@@ -211,12 +214,17 @@ function checkGroundUnder(player) { //return Y of tile(s) that player is standin
     return false;
 }
 
+
+//BUG fiindca asta intoarce false daca nu e perete, pentru coloana 0 nu merge (pentru randul 0
+// da fiindca nu intorc doar x * tileSize ci mai adun un offset care face sa nu mai fie 0 returnul)
 function pointInTile(x, y, accessor) {  //returns X/Y of tile which includes the point, false otherwise
+    
     if (x < 0 || x > width)
         return false;
     if (y < height - groundHeight || y > height)
         return false;
     tileX = Math.floor(x/groundWidth * gridWidth); //these are tileNo, not actual coord
+    
     tileY = Math.floor((y - (height - groundHeight))/groundHeight * gridHeight);
     if (ground[tileY][tileX].mined)
         return false;
@@ -240,7 +248,7 @@ function checkLeftWall(x,y) { //returns true if left wall blocks
     var lowerLeft = pointInTile(x, y + playerHeight / 2 - playerHeight / 4, "x");
     if (lowerLeft)
         return lowerLeft;
-    var upperLeft = pointInTile(x, y - playerHeight / 2  *(1- hitboxRatioUpperHalf) + playerHeight / 4, "x");
+    var upperLeft = pointInTile(x, y - playerHeight / 2  * (1- hitboxRatioUpperHalf) + playerHeight / 4, "x");
     if (upperLeft)
         return upperLeft;
     return false;

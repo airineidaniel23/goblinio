@@ -23,14 +23,16 @@
     getContext("2d");
     ctx.font = '30px Arial';
     var tr = 0;
-    var width = 1300;
-    var height = 700;
+    const screenWidth = 1300;
+    const screenHeight = 900;
+    var width = 2000;
+    var height = 1500;
     var characterWidth = 100;
     var characterHeight = 100;
     var hitboxRatioXHalf = 0.3;
     var hitboxRatioUpperHalf = 0.5;
-    var groundWidth = 1360; //must be a multiple of tileSize and synced with server values
-    var groundHeight = 240;
+    var groundWidth = 2000; //must be a multiple of tileSize and synced with server values
+    var groundHeight = 800;
     var tileSize = 80;
     var gridWidth = groundWidth / tileSize;
     var gridHeight = groundHeight / tileSize;
@@ -46,36 +48,41 @@
 
     socket.on('newPositions', function(data) {
         ctx.clearRect(0,0,width,height);
-        ctx.drawImage(jungle, 0, 0, width, height); 
         myX = data.personal.x;
         myY = data.personal.y;
-          
+
+        drawImageCentered(jungle, 0, 0, width, height); 
+
         for(var i  = 0; i < data.players.length; i ++) {
             if (data.players[i].facingLeft)
                 usedGoblin = goblinL;
             else usedGoblin = goblinR;
-            ctx.drawImage(usedGoblin, data.players[i].x - characterWidth/2,
-                            data.players[i].y - characterHeight/2 , characterWidth, characterHeight);
-            ctx.beginPath();
-            ctx.rect(myX - characterWidth * hitboxRatioXHalf, myY - characterHeight / 2 * (1 - hitboxRatioUpperHalf),
-                     characterWidth * 2 * hitboxRatioXHalf, characterHeight * (0.5 + 0.5 * hitboxRatioUpperHalf));
-            ctx.stroke();
+        //     ctx.drawImage(usedGoblin, data.players[i].x - characterWidth/2,
+        //                     data.players[i].y - characterHeight/2 , characterWidth, characterHeight);
+        // }
+        drawImageCentered(usedGoblin, data.players[i].x - characterWidth/2,
+                            data.players[i].y - characterHeight/2, characterWidth, characterHeight);
         }
+
+        drawRectCentered(myX - characterWidth * hitboxRatioXHalf, myY - characterHeight / 2 * (1 - hitboxRatioUpperHalf),
+                    characterWidth * 2 * hitboxRatioXHalf, characterHeight * (0.5 + 0.5 * hitboxRatioUpperHalf), "stroke")
+        //hitbox
+
         
         for (var i = 0; i < groundHeight / tileSize; i ++) {
             for (var j = 0; j < groundWidth / tileSize; j ++) {
                 if (!data.ground[i][j].mined) {
-                    ctx.drawImage(tile, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);  
+                    drawImageCentered(tile, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);  
                 }
             }
         }
         ht = data.personal.hoveredTile;
         if (ht.enabled && !data.ground[ht.y][ht.x].mined) {
-            ctx.beginPath();
-            ctx.rect(ht.x * tileSize, (height - groundHeight) + ht.y * tileSize , tileSize, tileSize);
-            if (ht.isBeingMined)
-                ctx.fill();
-            else ctx.stroke();
+            affectedTile = data.ground[ht.y][ht.x];
+            if (ht.isBeingMined) {
+                drawRectCentered(ht.x * tileSize, (height - groundHeight) + ht.y * tileSize , tileSize, tileSize * (affectedTile.maxHp - affectedTile.hp)/ affectedTile.maxHp, "fill");
+            }
+            drawRectCentered(ht.x * tileSize, (height - groundHeight) + ht.y * tileSize , tileSize, tileSize, "stroke");    
         }
     });
 
@@ -92,7 +99,7 @@
     document.onmousemove = function(event) {
         const mouseX = event.offsetX;
         const mouseY = event.offsetY;
-        socket.emit('mouseMoved', {x: mouseX, y: mouseY});
+        socket.emit('mouseMoved', {x: mouseX - centerOffsetX(), y: mouseY - (screenHeight / 2 - myY)});
   };
 
     document.onkeydown = function(event) {
@@ -121,4 +128,24 @@
     }
    
 
+    function centerOffsetX() {
+        if (width - myX < screenWidth / 2 )
+            return screenWidth - width;
+        else if (myX < screenWidth / 2)
+            return 0;
+        return (screenWidth / 2 - myX);
+    }
+
+    function drawImageCentered(img, x, y, sizex, sizey) {
+        ctx.drawImage(img, x  + centerOffsetX(), y + (screenHeight / 2 - myY), sizex, sizey);
+    }
+
+    function drawRectCentered(x, y, sizex, sizey, type) {
+        ctx.beginPath();
+        ctx.rect( x  + centerOffsetX(), y + (screenHeight / 2 - myY), sizex, sizey);
+        if (type == "stroke")
+            ctx.stroke();
+        else if (type == "fill")
+            ctx.fill();
+    }
 </script>
