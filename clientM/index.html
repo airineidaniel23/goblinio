@@ -75,7 +75,7 @@
             }
         }
 
-        if (hoveredTile.enabled) {
+        if (hoveredTile.enabled && !data.ground[hoveredTile.y][hoveredTile.x].mined) {
             ctx.beginPath();
             ctx.rect(hoveredTile.x * tileSize, (height - groundHeight) + hoveredTile.y * tileSize , tileSize, tileSize);
             if (detectMining())
@@ -101,7 +101,7 @@
 
         if (mouseX > 0 && mouseX < groundWidth && mouseY < height && mouseY > (height - groundHeight)) {
             hoveredTile.enabled = true;
-            hoveredTile.x = Math.floor(mouseX/groundWidth * gridWidth);
+            hoveredTile.x = Math.floor(mouseX/groundWidth * gridWidth);//adimensional
             hoveredTile.y = Math.floor((mouseY - (height - groundHeight))/groundHeight * gridHeight);
         } else {
             hoveredTile.enabled = false;
