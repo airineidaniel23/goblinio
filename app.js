@@ -201,11 +201,6 @@ setInterval(function() { //aici tratez emitting
                 ground[ht.y][ht.x].hp--;
             }
         }
-        var x = 1;
-        for(var i = 0; i < 10000; i ++) {
-            if (1 == x)
-                x++;
-        }
         socket.emit('newPositions', serverData);
     }
 }, 25);
