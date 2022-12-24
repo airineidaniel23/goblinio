@@ -125,8 +125,8 @@ for (let i = 0; i < gridHeight; i++) {
     ground[i][j] = {
       mined: false,  // Whether this tile has been mined or not
       value: 0, // The value of this tile (e.g. ore amount)
-      hp: 1,
-      maxHp: 1   
+      hp: 20,
+      maxHp: 20   
     };
   }
 }
