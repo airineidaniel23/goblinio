@@ -46,7 +46,8 @@ var Player = function(id) {
         facingLeft: false,
         speed: 0, //vertical
         acc: 1,
-        maxSpeed: 10,  //horizontal 
+        maxSpeed: 10, //horizontal 
+        itemInHand: false,
         hoveredTile: {
             x: 0,
             y: 0, // this is tile number not actual coord

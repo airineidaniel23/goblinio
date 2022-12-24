@@ -16,6 +16,9 @@
 <div style="display:none;">
 <img id="tile" src="clientM/img/tile.png" width="70" height="70" />
 </div>
+<div style="display:none;">
+<img id="pickaxe" src="clientM/img/pickaxe.png" width="70" height="70" />
+</div>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 var socket = io();
@@ -24,11 +27,13 @@ getContext("2d");
 ctx.font = '30px Arial';
 var tr = 0;
 const screenWidth = 1300;
-const screenHeight = 900;
+const screenHeight = 700;
 var width = 2000;
 var height = 1500;
 var characterWidth = 100;
 var characterHeight = 100;
+var pickaxeWidth = 50;
+var pickaxeHeight = 50;
 var hitboxRatioXHalf = 0.3;
 var hitboxRatioUpperHalf = 0.5;
 var groundWidth = 2000; //must be a multiple of tileSize and synced with server values
@@ -46,7 +51,11 @@ var goblinR = document.getElementById("sourceR");
 var goblinL = document.getElementById("sourceL");
 var jungle = document.getElementById("jungle");
 var tile = document.getElementById("tile");
+var pickaxe = document.getElementById("pickaxe");
 var usedGoblin = goblinR;
+
+var timeMined = 0;
+var pickaxeDir = 1;
 
 socket.on('newPositions', function(data) {
     ctx.clearRect(0,0,width,height);
@@ -61,6 +70,8 @@ socket.on('newPositions', function(data) {
         drawImageCentered(usedGoblin, data.players[i].x - characterWidth/2,
                         data.players[i].y - characterHeight/2, characterWidth, characterHeight);
     }
+
+    drawPickaxe(data.personal.facingLeft, data.personal.mousePressed);
 
     drawRectCentered(myX - characterWidth * hitboxRatioXHalf, myY - characterHeight / 2 * (1 - hitboxRatioUpperHalf),
                 characterWidth * 2 * hitboxRatioXHalf, characterHeight * (0.5 + 0.5 * hitboxRatioUpperHalf), "stroke")
@@ -196,5 +207,23 @@ return ((tileY> myY - screenHeight / 2 * 1.2) &&
     (tileY < myY + screenHeight / 2 * 1.2)) ||
     (tileY > myY - screenHeight / 2 * 1.2 + height) || //this
     (tileY < myY + screenHeight / 2 * 1.2 - height); //and this are for cycling screen (they prob wont work if ground height is smaller the screen height)
+}
+
+function drawPickaxe(fl, mp, pl) {//facing left and mouse pressed
+    if (mp) {
+        timeMined = (timeMined +  pickaxeDir * 0.78/20);
+        if (timeMined > 0.78 || timeMined < 0)
+            pickaxeDir *= -1;
+        if (!fl)
+            fl = -1;
+        ctx.translate(screenWidth / 2 , screenHeight /2);
+        ctx.rotate(- timeMined * fl);
+        drawImageCentered(pickaxe, myX - screenWidth / 2 - 25 - fl * 25,
+                        myY - screenHeight / 2 - 50, pickaxeWidth, pickaxeHeight);
+        ctx.rotate(timeMined * fl);
+        ctx.translate(- screenWidth /2, - screenHeight / 2);
+ 
+    }
+    else timeMined = 0;
 }
 </script>
