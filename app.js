@@ -112,7 +112,6 @@ var Player = function(id) {
             self.mouseY -= height;
             self.y -= height;
         }
-        console.log(self.mouseY);
         mouseMoved(self);
     }
     return self;
@@ -201,6 +200,11 @@ setInterval(function() { //aici tratez emitting
             } else if (ht.isBeingMined) {
                 ground[ht.y][ht.x].hp--;
             }
+        }
+        var x = 1;
+        for(var i = 0; i < 10000; i ++) {
+            if (1 == x)
+                x++;
         }
         socket.emit('newPositions', serverData);
     }
