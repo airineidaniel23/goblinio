@@ -32,8 +32,10 @@
     var hitboxRatioXHalf = 0.3;
     var hitboxRatioUpperHalf = 0.5;
     var groundWidth = 2000; //must be a multiple of tileSize and synced with server values
+    //also should be as close as possible to width so you dont get lag when you go near the edge, 
+    //because you will render more tiles pointlessly, not sure if actually impactful but nevertheless
     var groundHeight = 800;
-    var tileSize = 10;
+    var tileSize = 80;
     var gridWidth = groundWidth / tileSize;
     var gridHeight = groundHeight / tileSize;
     var myX = width/2;
@@ -57,10 +59,7 @@
             if (data.players[i].facingLeft)
                 usedGoblin = goblinL;
             else usedGoblin = goblinR;
-        //     ctx.drawImage(usedGoblin, data.players[i].x - characterWidth/2,
-        //                     data.players[i].y - characterHeight/2 , characterWidth, characterHeight);
-        // }
-        drawImageCentered(usedGoblin, data.players[i].x - characterWidth/2,
+             drawImageCentered(usedGoblin, data.players[i].x - characterWidth/2,
                             data.players[i].y - characterHeight/2, characterWidth, characterHeight);
         }
 
@@ -71,10 +70,8 @@
         
         for (var i = 0; i < groundHeight / tileSize; i ++) {
             for (var j = 0; j < groundWidth / tileSize; j ++) {
-                if (!data.ground[i][j].mined) {
-                    //drawImageCentered(tile, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);  
-                   
-                    drawRectCentered(j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize, "fill");
+                if (!data.ground[i][j].mined && tileRadiationBackground(i,j)) {
+                    drawImageCentered(tile, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);   
                 }
             }
         }
@@ -150,4 +147,20 @@
         else if (type == "fill")
             ctx.fill();
     }
+
+function tileRadiationBackground(row, col) {
+    //we multiply stuff by 1.2 so you get a little wiggle room with tiles 
+    //out of screen so you dont slightly see when they derender
+    //we dont multiply all, some we decided empirically they dont need wiggle room
+    if (!((col * tileSize > myX - screenWidth / 2 * 1.2) &&
+        (col * tileSize < myX + screenWidth / 2 * 1.2))) {
+        if (!((myX > width - screenWidth / 2) && col * tileSize > width - screenWidth * 1.2) &&
+            !((myX < screenWidth / 2) && col * tileSize <  screenWidth ))
+            return false;
+    }
+    if (!((row * tileSize + height - groundHeight > myY - screenHeight / 2 * 1.2) &&
+        (row * tileSize + height - groundHeight < myY + screenHeight / 2 * 1.2)))
+        return false;
+    return true;
+}
 </script>

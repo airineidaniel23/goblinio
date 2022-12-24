@@ -15,13 +15,15 @@ var player_list = {};
 var pack = [];
 
 var tr = 0;
+const screenWidth = 1300;
+const screenHeight = 900;
 const width = 2000;
 const height = 1500;
 var groundWidth = 2000;
 var groundHeight = 800;
 var hitboxRatioXHalf = 0.3;
 var hitboxRatioUpperHalf = 0.5;
-var tileSize = 10;
+var tileSize = 80;
 var playerHeight = 100;
 var playerWidth = 100;
 var gridWidth = groundWidth / tileSize; // adimensionala
@@ -167,7 +169,7 @@ setInterval(function() { //aici tratez emitting
 
     var serverData = {
         players: pack,
-        ground: ground
+        ground: ground //sa trimit doar groundul din jurul unui player sa nu hackeze fov mai mare
     }
     
     for(var i in socket_list) {
@@ -179,7 +181,7 @@ setInterval(function() { //aici tratez emitting
             if (ground[ht.y][ht.x].hp == 0) {
                 ground[ht.y][ht.x].mined = true;
                 ht.enabled = false;
-            } else if (ht.isBeingMined) {// E GRESIIIIIIIT
+            } else if (ht.isBeingMined) {
                 ground[ht.y][ht.x].hp--;
             }
         }
