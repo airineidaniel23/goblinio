@@ -113,6 +113,10 @@ var Player = function(id) {
             self.mouseY -= height;
             self.y -= height;
         }
+        if (self.speed > height * 0.5) {
+            self.y = 5 * height;
+            self.x = screenWidth / 2;
+        }
         mouseMoved(self);
     }
     return self;
@@ -125,8 +129,8 @@ for (let i = 0; i < gridHeight; i++) {
     ground[i][j] = {
       mined: false,  // Whether this tile has been mined or not
       value: 0, // The value of this tile (e.g. ore amount)
-      hp: 20,
-      maxHp: 20   
+      hp: 1,
+      maxHp: 1   
     };
   }
 }

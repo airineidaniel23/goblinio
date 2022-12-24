@@ -11,6 +11,9 @@
 <img id="sourceL" src="clientM/img/goblinL.png" width="300" height="227" />
 </div>
 <div style="display:none;">
+<img id="eg" src="clientM/img/eg.png" width="300" height="227" />
+</div>
+<div style="display:none;">
 <img id="jungle" src="clientM/img/jungle.jfif" width="300" height="227" />
 </div>
 <div style="display:none;">
@@ -53,6 +56,7 @@ var lastMouseY = height/2;
 var goblinR = document.getElementById("sourceR");
 var goblinL = document.getElementById("sourceL");
 var jungle = document.getElementById("jungle");
+var eg = document.getElementById("eg");
 var tile = document.getElementById("tile");
 var pickaxeL = document.getElementById("pickaxeL");
 var pickaxeR = document.getElementById("pickaxeR");
@@ -66,7 +70,7 @@ socket.on('newPositions', function(data) {
     myX = data.personal.x;
     myY = data.personal.y;
     drawImageCenteredBackground(jungle, 0, 0, width, height); 
-
+    drawImageCenteredBackground(eg, 0, 5 * height - screenHeight / 2, screenWidth, screenHeight);
     for(var i  = 0; i < data.players.length; i ++) {
         if (data.players[i].facingLeft)
             usedGoblin = goblinL;
@@ -76,7 +80,6 @@ socket.on('newPositions', function(data) {
     }
 
     drawPickaxe(data.personal.facingLeft, data.personal.mousePressed);
-
     drawRectCentered(myX - characterWidth * hitboxRatioXHalf, myY - characterHeight / 2 * (1 - hitboxRatioUpperHalf),
                 characterWidth * 2 * hitboxRatioXHalf, characterHeight * (0.5 + 0.5 * hitboxRatioUpperHalf), "stroke")
     //hitbox
