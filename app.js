@@ -59,20 +59,31 @@ var Player = function(id) {
         
         if(self.pR) {
             var rightWall = checkRightWall(self.x + self.maxSpeed, self.y);
-            if (!rightWall)
+            if (!rightWall) {
                 self.x += self.maxSpeed;
-            else self.x = rightWall - playerWidth * hitboxRatioXHalf; // rightwall is coordinate of wall, so player must be a bit to the left
+                self.mouseX += self.maxSpeed;
+            }
+            else {
+                self.mouseX += rightWall - playerWidth * hitboxRatioXHalf - self.x;
+                self.x = rightWall - playerWidth * hitboxRatioXHalf; // rightwall is coordinate of wall, so player must be a bit to the left
+            }
         }
         if(self.pL) {
             var leftWall = checkLeftWall(self.x - self.maxSpeed, self.y);
-            if (!leftWall)
+            if (!leftWall) {
                 self.x -= self.maxSpeed;
+                self.mouseX -= self.maxSpeed;
+            }
             // we add tileSize because leftWall is coord of left side of left tile(far away from character)
-            else self.x = leftWall + tileSize + playerWidth * hitboxRatioXHalf; //these could be removed
+            else {
+                self.mouseX += leftWall + tileSize + playerWidth * hitboxRatioXHalf - self.x;
+                self.x = leftWall + tileSize + playerWidth * hitboxRatioXHalf; //these could be removed
+            }
         }
         if(self.pU && self.jumping == false && groundUnder) { //daca nu pun groundUnder apare frame perfect bug care te catapulteaza
             self.speed = - 14;
             self.acc = 1;
+            self.mouseY += groundUnder - playerHeight / 2 - 1 - self.y;
             self.y = groundUnder - playerHeight / 2 - 1;//we teleport player above ground
             groundUnder = false;  //we manually change the player state to jumping above ground
             self.jumping = true;
@@ -85,6 +96,7 @@ var Player = function(id) {
                 self.jumping = false;
                 self.acc = 0;
                 self.speed = 0;
+                self.mouseY += groundUnder - playerHeight / 2 + 1 - self.y;
                 self.y =  groundUnder - playerHeight / 2  + 1;
             }
         } else if (self.jumping == false) {
@@ -95,6 +107,13 @@ var Player = function(id) {
         }
         self.speed += self.acc;
         self.y += self.speed;
+        self.mouseY += self.speed;
+        if (self.y > height) {// for cycling
+            self.mouseY -= height;
+            self.y -= height;
+        }
+        console.log(self.mouseY);
+        mouseMoved(self);
     }
     return self;
 }
@@ -154,8 +173,6 @@ io.sockets.on('connection', function(socket) { // aici tratez incoming
 
 setInterval(function() { //aici tratez emitting
     pack = [];
-    var g = 1;
-    var y = 2;
     for (var i in player_list) {
         var tempPlayer = player_list[i];
         tempPlayer.updatePosition();
@@ -220,14 +237,14 @@ function checkGroundUnder(player) { //return Y of tile(s) that player is standin
 //BUG fiindca asta intoarce false daca nu e perete, pentru coloana 0 nu merge (pentru randul 0
 // da fiindca nu intorc doar x * tileSize ci mai adun un offset care face sa nu mai fie 0 returnul)
 function pointInTile(x, y, accessor) {  //returns X/Y of tile which includes the point, false otherwise
-    
-    if (x < 0 || x > width)
+    if (x < 0 || x >= gridWidth * tileSize)
         return false;
-    if (y < height - groundHeight || y > height)
+    if (y < height - groundHeight || y >= height)
         return false;
-    tileX = Math.floor(x/groundWidth * gridWidth); //these are tileNo, not actual coord
+    tileX = Math.floor(x/ tileSize); //these are tileNo, not actual coord
     
-    tileY = Math.floor((y - (height - groundHeight))/groundHeight * gridHeight);
+    tileY = Math.floor((y - (height - groundHeight))/ tileSize);
+    
     if (ground[tileY][tileX].mined)
         return false;
 
