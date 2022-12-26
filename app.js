@@ -202,7 +202,6 @@ setInterval(function() { //aici tratez emitting
 
     var serverData = {
         players: pack,
-        groundH: groundH,
         ground: ground //sa trimit doar groundul din jurul unui player sa nu hackeze fov mai mare
     }
     
