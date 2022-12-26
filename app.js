@@ -134,6 +134,18 @@ for (let i = 0; i < gridHeight; i++) {
     };
   }
 }
+var groundH = [];
+for (let i = 0; i < 100; i++) {
+  groundH[i] = [];
+  for (let j = 0; j < 100; j++) {
+    groundH[i][j] = {
+      mined: false,  // Whether this tile has been mined or not
+      value: 0, // The value of this tile (e.g. ore amount)
+      hp: 1,
+      maxHp: 1   
+    };
+  }
+}
 
 var io = require('socket.io')(serv, {});
 io.sockets.on('connection', function(socket) { // aici tratez incoming
@@ -190,6 +202,7 @@ setInterval(function() { //aici tratez emitting
 
     var serverData = {
         players: pack,
+        groundH: groundH,
         ground: ground //sa trimit doar groundul din jurul unui player sa nu hackeze fov mai mare
     }
     
