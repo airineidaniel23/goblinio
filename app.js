@@ -17,10 +17,10 @@ var pack = [];
 var tr = 0;
 const screenWidth = 1300;
 const screenHeight = 900;
-const width = 2000;
-const height = 2000;
-var groundWidth = 2000;
-var groundHeight = 1360;
+const width = 18 * 80;
+const height = 11* 80;
+var groundWidth = 18* 80;
+var groundHeight = 1100;
 var hitboxRatioXHalf = 0.3;
 var hitboxRatioUpperHalf = 0.5;
 var tileSize = 80;
@@ -127,18 +127,6 @@ for (let i = 0; i < gridHeight; i++) {
   ground[i] = [];
   for (let j = 0; j < gridWidth; j++) {
     ground[i][j] = {
-      mined: false,  // Whether this tile has been mined or not
-      value: 0, // The value of this tile (e.g. ore amount)
-      hp: 1,
-      maxHp: 1   
-    };
-  }
-}
-var groundH = [];
-for (let i = 0; i < 100; i++) {
-  groundH[i] = [];
-  for (let j = 0; j < 100; j++) {
-    groundH[i][j] = {
       mined: false,  // Whether this tile has been mined or not
       value: 0, // The value of this tile (e.g. ore amount)
       hp: 1,
