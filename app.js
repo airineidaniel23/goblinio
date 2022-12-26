@@ -17,9 +17,9 @@ var pack = [];
 var tr = 0;
 const screenWidth = 1300;
 const screenHeight = 900;
-const width = 8000;
+const width = 5000;
 const height = 9000;
-var groundWidth = 8000;
+var groundWidth = 5000;
 var groundHeight = 1360;
 var hitboxRatioXHalf = 0.3;
 var hitboxRatioUpperHalf = 0.5;
@@ -208,7 +208,7 @@ setInterval(function() { //aici tratez emitting
         }
         socket.emit('newPositions', serverData);
     }
-}, 50);
+}, 25);
 
 
 
