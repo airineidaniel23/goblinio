@@ -208,7 +208,7 @@ setInterval(function() { //aici tratez emitting
         }
         socket.emit('newPositions', serverData);
     }
-}, 25);
+}, 50);
 
 
 
