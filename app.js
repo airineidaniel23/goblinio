@@ -29,6 +29,7 @@ var playerWidth = 100;
 var gridWidth = groundWidth / tileSize; // adimensionala
 var gridHeight = groundHeight / tileSize;
 var tileX, tileY;
+
 var Player = function(id) {
     var self = {
         x: width/2,
@@ -89,7 +90,6 @@ var Player = function(id) {
             groundUnder = false;  //we manually change the player state to jumping above ground
             self.jumping = true;
         }
-        console.log(self.x + " " + self.mouseX);
         if ((self.mouseX < self.x && (self.x - self.mouseX < screenWidth / 2)) ||
              (self.mouseX > self.x && (self.x - self.mouseX + width < screenWidth /2)))
             self.facingLeft = true;
@@ -336,7 +336,11 @@ function mouseMoved(player) {
 }
 
 function detectMining(player) { //hoveredTile mousePressed from server
-    xDist = player.x  - (player.hoveredTile.x * tileSize + tileSize/2);
+    if ((player.x < tileSize) && (player.hoveredTile.x == gridWidth - 1)) {
+        xDist = player.x + groundWidth - (player.hoveredTile.x * tileSize + tileSize/2);
+    } else if ((player.x > groundWidth - tileSize) && (player.hoveredTile.x == 0)) { 
+        xDist = player.x - groundWidth - (player.hoveredTile.x * tileSize + tileSize/2);
+    } else xDist = player.x  - (player.hoveredTile.x * tileSize + tileSize/2);
     yDist = player.y  - ((height - groundHeight) + player.hoveredTile.y * tileSize + tileSize/2);
     return (Math.sqrt(xDist * xDist + yDist * yDist) < 100)  && player.mousePressed && player.hoveredTile.enabled;
 }
