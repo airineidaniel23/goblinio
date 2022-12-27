@@ -16,10 +16,10 @@ var pack = [];
 
 var tr = 0;
 const screenWidth = 1300;
-const screenHeight = 900;
-const width = 2000;
-const height = 1500;
-var groundWidth = 2000;
+const screenHeight = 700;
+const width = 1600;
+const height = 1300;
+var groundWidth = 1600;
 var groundHeight = 800;
 var hitboxRatioXHalf = 0.3;
 var hitboxRatioUpperHalf = 0.5;
@@ -71,7 +71,7 @@ var Player = function(id) {
         }
         if(self.pL) {
             var leftWall = checkLeftWall(self.x - self.maxSpeed, self.y);
-            if (!leftWall) {
+            if (leftWall === false) {
                 self.x -= self.maxSpeed;
                 self.mouseX -= self.maxSpeed;
             }
@@ -112,10 +112,15 @@ var Player = function(id) {
         if (self.y > height) {// for cycling
             self.mouseY -= height;
             self.y -= height;
+        } else if (self.x + playerWidth / 2 > width) {
+            self.x -= width;
+        } else if (self.x - playerWidth / 2 < 0) {
+            self.x += width;
         }
-        if (self.speed > height * 0.5) {
-            self.y = 5 * height;
-            self.x = screenWidth / 2;
+        if (self.mouseX > width) {
+            self.mouseX -= width;
+        } else if (self.mouseX < 0) {
+            self.mouseX += width;
         }
         mouseMoved(self);
     }
@@ -161,7 +166,12 @@ io.sockets.on('connection', function(socket) { // aici tratez incoming
     });
 
     socket.on('mouseMoved', function(data) {
-        player.mouseX = data.x;
+        if (data.x < 0)
+            player.mouseX = data.x + width;
+        else if (data.x > width)
+            player.mouseX = data.x - width;
+        else player.mouseX = data.x;
+        
         player.mouseY = data.y;
         mouseMoved(player);     
     });
@@ -262,25 +272,25 @@ function checkLeftWall(x,y) { //returns true if left wall blocks
     //the smaller this difference is, the later we will get a "false fall through ground",
     // but if we make it too small, we glitch when we jump because it will be a "false false through ground"
     x = x - playerWidth * hitboxRatioXHalf; //basically creating a hitbox
-    if (x < 1)
-        return 1 - tileSize; //we expect for left wall to be one tile size away because coordinates are upperleft corners (exception is character)
+    //if (x < 1)
+    //    return 1 - tileSize; //we expect for left wall to be one tile size away because coordinates are upperleft corners (exception is character)
     // we subtract and add playerHeight/4 because we basically have two hitboxes:
     //one for up down movement and one for left right. We want to avoid detecting a ceiling, and 
     //we hope the ceiling function will stop us before we reach 1/4, if we are more than 1/4 in, we are probably
     //coming at it from the side
     var lowerLeft = pointInTile(x, y + playerHeight / 2 - playerHeight / 4, "x");
-    if (lowerLeft)
+    if (!(lowerLeft === false))
         return lowerLeft;
     var upperLeft = pointInTile(x, y - playerHeight / 2  * (1- hitboxRatioUpperHalf) + playerHeight / 4, "x");
-    if (upperLeft)
+    if (!(upperLeft === false))
         return upperLeft;
     return false;
 }
 
 function checkRightWall(x,y) {
     x = x + playerWidth * hitboxRatioXHalf;
-    if (x >width)
-        return width;
+    //if (x >width)
+    //    return width;
     var lowerRight = pointInTile(x, y + playerHeight / 2 - playerHeight / 4, "x");
     if (lowerRight)
         return lowerRight;

@@ -11,9 +11,6 @@
 <img id="sourceL" src="clientM/img/goblinL.png" width="300" height="227" />
 </div>
 <div style="display:none;">
-<img id="eg" src="clientM/img/eg.png" width="300" height="227" />
-</div>
-<div style="display:none;">
 <img id="jungle" src="clientM/img/jungle.jfif" width="300" height="227" />
 </div>
 <div style="display:none;">
@@ -34,15 +31,15 @@ ctx.font = '30px Arial';
 var tr = 0;
 const screenWidth = 1300;
 const screenHeight = 700;
-var width = 2000;
-var height = 1500;
+var width = 1600;
+var height = 1300;
 var characterWidth = 100;
 var characterHeight = 100;
 var pickaxeWidth = 70;
 var pickaxeHeight = 70;
 var hitboxRatioXHalf = 0.3;
 var hitboxRatioUpperHalf = 0.5;
-var groundWidth = 2000; //must be a multiple of tileSize and synced with server values
+var groundWidth = 1600; //must be a multiple of tileSize and synced with server values
 //also should be as close as possible to width so you dont get lag when you go near the edge, 
 //because you will render more tiles pointlessly, not sure if actually impactful but nevertheless
 var groundHeight = 800;
@@ -56,7 +53,6 @@ var lastMouseY = height/2;
 var goblinR = document.getElementById("sourceR");
 var goblinL = document.getElementById("sourceL");
 var jungle = document.getElementById("jungle");
-var eg = document.getElementById("eg");
 var tile = document.getElementById("tile");
 var pickaxeL = document.getElementById("pickaxeL");
 var pickaxeR = document.getElementById("pickaxeR");
@@ -70,7 +66,6 @@ socket.on('newPositions', function(data) {
     myX = data.personal.x;
     myY = data.personal.y;
     drawImageCenteredBackground(jungle, 0, 0, width, height); 
-    drawImageCenteredBackground(eg, 0, 5 * height - screenHeight / 2, screenWidth, screenHeight);
     for(var i  = 0; i < data.players.length; i ++) {
         if (data.players[i].facingLeft)
             usedGoblin = goblinL;
@@ -159,22 +154,51 @@ function drawImageCentered(img, x, y, sizex, sizey) {
     } else if ( y > myY - screenHeight / 2 * 1.2 + height) {//and this are for cycling
         y -= height;
     }
+    if (x < (myX + screenWidth / 2  * 1.2 - width)) {//this
+        x += width;
+    } else if ( x > myX - screenWidth / 2 * 1.2 + width) {//and this are for horizontal cycling
+        x -= width;
+    }
     ctx.drawImage(img, x  + centerOffsetX(), y + (screenHeight / 2 - myY), sizex, sizey);
 }
 
-function drawImageCenteredBackground(img, x, y, sizex, sizey) {
+function drawImageCenteredBackground(img, x, y, sizex, sizey) { //wont work if screen size is bigger than width/height
+    let c1 = false;
+    let c2 = false;
     if (y < (myY + screenHeight / 2 - height)) {
-        if (y + sizey > myY - screenHeight / 2) {
-                ctx.drawImage(img, x  + centerOffsetX(), y + (screenHeight / 2 - myY), sizex, sizey); //only for endless digging(recycling)
-        }
-        y += height;
-    } else if ( y + sizey > myY - screenHeight / 2 + height) {
+        c1 = true;
+        ctx.drawImage(img, x  + centerOffsetX(), y + (screenHeight / 2 - myY) + height, sizex, sizey); //only for endless digging(recycling) (looking down)
+    } else if (y + sizey > myY - screenHeight / 2 + height) {
+        c2 = true;
         ctx.drawImage(img, x  + centerOffsetX(), y + (screenHeight / 2 - myY) - height, sizex, sizey); //only for endless digging(recycling)
+    }
+    if (x  + sizex > myX - screenWidth / 2 + width) {
+        ctx.drawImage(img, x  + centerOffsetX() - width, y + (screenHeight / 2 - myY), sizex, sizey); //endless walking left
+        if (c1)
+            ctx.drawImage(img, x  + centerOffsetX() - width, y + (screenHeight / 2 - myY) + height, sizex, sizey); //lower left
+        else if (c2)
+            ctx.drawImage(img, x  + centerOffsetX() - width, y + (screenHeight / 2 - myY) - height, sizex, sizey); //upper left
+    } else if (x + width < myX + screenWidth / 2) {
+        ctx.drawImage(img, x + centerOffsetX() + width, y + (screenHeight / 2 - myY), sizex, sizey); //endless walking right
+        if (c1)
+            ctx.drawImage(img, x + centerOffsetX() + width, y + (screenHeight / 2 - myY) + height, sizex, sizey); //lower right
+        else if (c2)
+            ctx.drawImage(img, x + centerOffsetX() + width, y + (screenHeight / 2 - myY) - height, sizex, sizey); //upper right
     }
     ctx.drawImage(img, x  + centerOffsetX(), y + (screenHeight / 2 - myY), sizex, sizey);
 }
 
 function drawRectCentered(x, y, sizex, sizey, type) {
+    if (y < (myY + screenHeight / 2 * 1.2 - height)) { //this
+        y += height;
+    } else if ( y > myY - screenHeight / 2 * 1.2 + height) {//and this are for cycling
+        y -= height;
+    }
+    if (x < (myX + screenWidth / 2  * 1.2 - width)) {//this
+        x += width;
+    } else if ( x > myX - screenWidth / 2 * 1.2 + width) {//and this are for horizontal cycling
+        x -= width;
+    }
     ctx.beginPath();
     ctx.rect( x  + centerOffsetX(), y + (screenHeight / 2 - myY), sizex, sizey);
     if (type == "stroke")
@@ -196,24 +220,27 @@ return true;
 
 
 function aroundPlayerHorizontal(row, col) {
-//we multiply stuff by 1.2 so you get a little wiggle room with tiles 
-//out of screen so you dont slightly see when they derender
-//we dont multiply all, some we decided empirically they dont need wiggle room
-return ((col * tileSize > myX - screenWidth / 2 * 1.2) &&
-    (col * tileSize < myX + screenWidth / 2 * 1))
+    //we multiply stuff by 1.2 so you get a little wiggle room with tiles 
+    //out of screen so you dont slightly see when they derender
+    //we dont multiply all, some we decided empirically they dont need wiggle room
+    var tileX = col * tileSize;
+    return ((tileX > myX - screenWidth / 2 * 1.2) &&
+        (tileX < myX + screenWidth / 2 * 1)) ||
+        (tileX > myX - screenWidth / 2 * 1.2 + width) || //this
+        (tileX < myX + screenWidth / 2 * 1.2 - width); //and this are for walking cycling screen (they prob wont work if ground width is smaller the screen width)
 }
 
 function nearHorizontalEdge(row, col) {
-return !(!((myX > width - screenWidth / 2) && col * tileSize > width - screenWidth * 1.2) &&
-        !((myX < screenWidth / 2) && col * tileSize <  screenWidth ));
+    return !(!((myX > width - screenWidth / 2) && col * tileSize > width - screenWidth * 1.2) &&
+            !((myX < screenWidth / 2) && col * tileSize <  screenWidth ));
 } //sper sa nu tb vreodata sa fac debug la ^
 
 function aroundPlayerVertical(row, col) {
     var tileY = row * tileSize + height - groundHeight;
-return ((tileY> myY - screenHeight / 2 * 1.2) &&
-    (tileY < myY + screenHeight / 2 * 1.2)) ||
-    (tileY > myY - screenHeight / 2 * 1.2 + height) || //this
-    (tileY < myY + screenHeight / 2 * 1.2 - height); //and this are for cycling screen (they prob wont work if ground height is smaller the screen height)
+    return ((tileY> myY - screenHeight / 2 * 1.2) &&
+        (tileY < myY + screenHeight / 2 * 1.2)) ||
+        (tileY > myY - screenHeight / 2 * 1.2 + height) || //this
+        (tileY < myY + screenHeight / 2 * 1.2 - height); //and this are for cycling screen (they prob wont work if ground height is smaller the screen height)
 }
 
 function drawPickaxe(fl, mp, pl) {//facing left and mouse pressed
