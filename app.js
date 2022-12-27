@@ -60,7 +60,7 @@ var Player = function(id) {
         
         if(self.pR) {
             var rightWall = checkRightWall(self.x + self.maxSpeed, self.y);
-            if (!rightWall) {
+            if (rightWall === false) {
                 self.x += self.maxSpeed;
                 self.mouseX += self.maxSpeed;
             }
@@ -89,7 +89,9 @@ var Player = function(id) {
             groundUnder = false;  //we manually change the player state to jumping above ground
             self.jumping = true;
         }
-        if (self.mouseX < self.x)
+        console.log(self.x + " " + self.mouseX);
+        if ((self.mouseX < self.x && (self.x - self.mouseX < screenWidth / 2)) ||
+             (self.mouseX > self.x && (self.x - self.mouseX + width < screenWidth /2)))
             self.facingLeft = true;
         else self.facingLeft = false;
         if (groundUnder) {
@@ -112,9 +114,9 @@ var Player = function(id) {
         if (self.y > height) {// for cycling
             self.mouseY -= height;
             self.y -= height;
-        } else if (self.x + playerWidth / 2 > width) {
+        } else if (self.x > width) {
             self.x -= width;
-        } else if (self.x - playerWidth / 2 < 0) {
+        } else if (self.x < 0) {
             self.x += width;
         }
         if (self.mouseX > width) {
@@ -248,13 +250,18 @@ function checkGroundUnder(player) { //return Y of tile(s) that player is standin
 }
 
 
-//BUG fiindca asta intoarce false daca nu e perete, pentru coloana 0 nu merge (pentru randul 0
-// da fiindca nu intorc doar x * tileSize ci mai adun un offset care face sa nu mai fie 0 returnul)
+
+//does not work for tiles that are cycled more then one tile size, so you cant use it for mouse,
+//but you can use it for character
 function pointInTile(x, y, accessor) {  //returns X/Y of tile which includes the point, false otherwise
-    if (x < 0 || x >= gridWidth * tileSize)
+    if (x < -tileSize || x >= (gridWidth + 1)* tileSize)
         return false;
     if (y < height - groundHeight || y >= height)
         return false;
+    if (x < 0)
+        x += width;
+    if (x >= gridWidth * tileSize)
+        x -= width;
     tileX = Math.floor(x/ tileSize); //these are tileNo, not actual coord
     
     tileY = Math.floor((y - (height - groundHeight))/ tileSize);
@@ -292,14 +299,14 @@ function checkRightWall(x,y) {
     //if (x >width)
     //    return width;
     var lowerRight = pointInTile(x, y + playerHeight / 2 - playerHeight / 4, "x");
-    if (lowerRight)
+    if (!(lowerRight === false))
         return lowerRight;
     // we subtract half a player height because of the way the character is drawn. we
     //add the hitboxratio to "lower the ceiling" (this is only the upper point)
     // and we add another 0.5 to compensate for the above line where we subtracted 
     // playerHeight /4 (that is only needed for lower checking, we should add it in there instead of compensating)
     var upperRight = pointInTile(x, y - playerHeight / 2  *(1- hitboxRatioUpperHalf ) + playerHeight / 4, "x");
-    if (upperRight)
+    if (!(upperRight === false))
         return upperRight;
     return false;
 }

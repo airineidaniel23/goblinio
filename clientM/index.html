@@ -14,7 +14,7 @@
 <img id="jungle" src="clientM/img/jungle.jfif" width="300" height="227" />
 </div>
 <div style="display:none;">
-<img id="tile" src="clientM/img/tile.png" width="70" height="70" />
+<img id="tile" src="clientM/img/tile.png" width="80" height="80" />
 </div>
 <div style="display:none;">
 <img id="pickaxeL" src="clientM/img/pickaxeL.png" width="70" height="70" />
@@ -75,6 +75,7 @@ socket.on('newPositions', function(data) {
     }
 
     drawPickaxe(data.personal.facingLeft, data.personal.mousePressed);
+    drawRectCentered(data.personal.mouseX, data.personal.mouseY, 15, 15, "fill");
     drawRectCentered(myX - characterWidth * hitboxRatioXHalf, myY - characterHeight / 2 * (1 - hitboxRatioUpperHalf),
                 characterWidth * 2 * hitboxRatioXHalf, characterHeight * (0.5 + 0.5 * hitboxRatioUpperHalf), "stroke")
     //hitbox
