@@ -1,4 +1,16 @@
-
+<div id='chat' style="
+display: none;
+position: absolute;
+background-color:white;
+top:350px;
+transform:translate(-50%, -50%);
+left:650px;
+padding: 10px;
+max-width: 500px;
+width: 100%;
+text-align:center;
+">
+<h1>Enter text</h1><input type="text" name="chat_input" id="chat_input"></input></div>
 <canvas id="ctx" width="1300" height="700" style="border:1px solid #000000"></canvas>
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/p5.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.dom.min.js"></script>
@@ -28,6 +40,7 @@ var socket = io();
 var ctx = document.getElementById("ctx").
 getContext("2d");
 ctx.font = '30px Arial';
+ctx.font = "bold 30px Courier";
 var tr = 0;
 const screenWidth = 1300;
 const screenHeight = 700;
@@ -60,6 +73,7 @@ var usedGoblin = goblinR;
 
 var timeMined = 0;
 var pickaxeDir = 1;
+var chatOpen = false;
 
 socket.on('newPositions', function(data) {
     ctx.clearRect(0,0,width,height);
@@ -72,6 +86,10 @@ socket.on('newPositions', function(data) {
         else usedGoblin = goblinR;
         drawImageCentered(usedGoblin, data.players[i].x - characterWidth/2,
                         data.players[i].y - characterHeight/2, characterWidth, characterHeight);
+        if (data.players[i].chat != "") {
+            drawTextCentered(data.players[i].chat, data.players[i].x - characterWidth / 2,
+                            data.players[i].y - characterHeight);
+        }
     }
 
     drawPickaxe(data.personal.facingLeft, data.personal.mousePressed);
@@ -124,7 +142,21 @@ document.onkeydown = function(event) {
         socket.emit('keyPress', {inputId: 'left', state: true});
     }
     else if(event.keyCode == 87)
-        socket.emit('keyPress', {inputId: 'up', state: true});   
+        socket.emit('keyPress', {inputId: 'up', state: true});
+    else if(event.key == 'Enter') {
+        chat = document.getElementById('chat');
+        chat_input = document.getElementById('chat_input');
+        if (chatOpen) {
+            chatOpen = false;
+            chat.style.display = "none";
+            socket.emit('sendChat', {content: chat_input.value});
+            chat_input.value = "";
+        } else {
+            chatOpen = true;
+            chat.style.display = "block";
+            chat_input.focus();
+        }
+    }
 }
 
 
@@ -161,6 +193,21 @@ function drawImageCentered(img, x, y, sizex, sizey) {
         x -= width;
     }
     ctx.drawImage(img, x  + centerOffsetX(), y + (screenHeight / 2 - myY), sizex, sizey);
+}
+
+function drawTextCentered(text, x, y) {
+    if (y < (myY + screenHeight / 2 * 1.2 - height)) { //this
+        y += height;
+    } else if ( y > myY - screenHeight / 2 * 1.2 + height) {//and this are for cycling
+        y -= height;
+    }
+    if (x < (myX + screenWidth / 2  * 1.2 - width)) {//this
+        x += width;
+    } else if ( x > myX - screenWidth / 2 * 1.2 + width) {//and this are for horizontal cycling
+        x -= width;
+    }
+    ctx.fillStyle = "white";
+    ctx.fillText(text, x  + centerOffsetX(), y + (screenHeight / 2 - myY));
 }
 
 function drawImageCenteredBackground(img, x, y, sizex, sizey) { //wont work if screen size is bigger than width/height

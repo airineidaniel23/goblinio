@@ -49,6 +49,8 @@ var Player = function(id) {
         acc: 1,
         maxSpeed: 10, //horizontal 
         itemInHand: false,
+        chat: "",
+        chatTTL: 0,
         hoveredTile: {
             x: 0,
             y: 0, // this is tile number not actual coord
@@ -185,6 +187,11 @@ io.sockets.on('connection', function(socket) { // aici tratez incoming
     socket.on('mouseUp', function(data) {
         player.mousePressed = false;
     });
+
+    socket.on('sendChat', function(data) {
+        player.chat = data.content;
+        player.chatTTL = 25;
+    });
 });
 
 setInterval(function() { //aici tratez emitting
@@ -192,11 +199,17 @@ setInterval(function() { //aici tratez emitting
     for (var i in player_list) {
         var tempPlayer = player_list[i];
         tempPlayer.updatePosition();
+        if (tempPlayer.chatTTL > 0) {
+            tempPlayer.chatTTL--;
+        } else {
+            tempPlayer.chat = "";
+        }
         pack.push({
             x: tempPlayer.x,
             y: tempPlayer.y,
             facingLeft: tempPlayer.facingLeft,
-            number: tempPlayer.number
+            number: tempPlayer.number,
+            chat: tempPlayer.chat,
         });
     }
 
@@ -218,6 +231,7 @@ setInterval(function() { //aici tratez emitting
                 ground[ht.y][ht.x].hp--;
             }
         }
+
         socket.emit('newPositions', serverData);
     }
 }, 25);
