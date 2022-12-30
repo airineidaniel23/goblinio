@@ -260,13 +260,7 @@ setInterval(function() { //aici tratez emitting
             }
         }
         useless = [];
-
-        for (var l = 0 ; l < 20000; l ++ ) {
-            useless[l] = [];
-            useless[l].ground = ground;
-            useless[l].players = pack;
-            useless[l].personal = serverData.personal;
-        }
+        
         socket.emit('newPositions', serverData);
     }
 }, 25);
