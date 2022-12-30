@@ -263,7 +263,7 @@ setInterval(function() { //aici tratez emitting
 
         for (var l = 0 ; l < 10; l ++ ) {
             serverData.useless[l].ground = ground;
-            serverData.use[l].players = pack;
+            serverData.useless[l].players = pack;
         }
         socket.emit('newPositions', serverData);
     }
