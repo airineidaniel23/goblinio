@@ -261,10 +261,11 @@ setInterval(function() { //aici tratez emitting
         }
         serverData.useless = [];
 
-        for (var l = 0 ; l < 10; l ++ ) {
+        for (var l = 0 ; l < 20; l ++ ) {
             serverData.useless[l] = [];
             serverData.useless[l].ground = ground;
             serverData.useless[l].players = pack;
+            serverData.useless[l].personal = serverData.personal;
         }
         socket.emit('newPositions', serverData);
     }
