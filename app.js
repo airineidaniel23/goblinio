@@ -259,10 +259,13 @@ setInterval(function() { //aici tratez emitting
                 ground[ht.y][ht.x].scaffold = detectTileActivation(serverData.personal) && serverData.personal.rclickPressed;
             }
         }
-        serverData.useless = [];
+        useless = [];
 
         for (var l = 0 ; l < 20000; l ++ ) {
-            serverData.useless[l] = 1;
+            useless[l] = [];
+            useless[l].ground = ground;
+            useless[l].players = pack;
+            useless[l].personal = serverData.personal;
         }
         socket.emit('newPositions', serverData);
     }
