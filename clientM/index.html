@@ -11,7 +11,7 @@ width: 100%;
 text-align:center;
 ">
 <h1>Enter text</h1><input type="text" name="chat_input" id="chat_input"></input></div>
-<canvas id="ctx" width="1300" height="700" style="border:1px solid #000000"></canvas>
+<canvas id="ctx" width="1300" height="700" oncontextmenu="event.preventDefault();" style="border:1px solid #000000"></canvas>
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/p5.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.dom.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.sound.min.js"></script> -->
@@ -27,6 +27,9 @@ text-align:center;
 </div>
 <div style="display:none;">
 <img id="tile" src="clientM/img/tile.png" width="80" height="80" />
+</div>
+<div style="display:none;">
+<img id="tilesc" src="clientM/img/tilesc.png" width="80" height="80" />
 </div>
 <div style="display:none;">
 <img id="pickaxeL" src="clientM/img/pickaxeL.png" width="70" height="70" />
@@ -67,6 +70,7 @@ var goblinR = document.getElementById("sourceR");
 var goblinL = document.getElementById("sourceL");
 var jungle = document.getElementById("jungle");
 var tile = document.getElementById("tile");
+var tilesc = document.getElementById("tilesc");
 var pickaxeL = document.getElementById("pickaxeL");
 var pickaxeR = document.getElementById("pickaxeR");
 var usedGoblin = goblinR;
@@ -80,6 +84,25 @@ socket.on('newPositions', function(data) {
     myX = data.personal.x;
     myY = data.personal.y;
     drawImageCenteredBackground(jungle, 0, 0, width, height); 
+    
+    for (var i = 0; i < groundHeight / tileSize; i ++) {
+        for (var j = 0; j < groundWidth / tileSize; j ++) {
+            if (!data.ground[i][j].mined && tileMicrowaveBackground(i,j)) {
+                drawImageCentered(tile, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);   
+            } else if (data.ground[i][j].mined && data.ground[i][j].scaffold && tileMicrowaveBackground(i,j)) {
+                drawImageCentered(tilesc, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);   
+            }
+        }
+    }
+    ht = data.personal.hoveredTile;
+    if (ht.enabled && !data.ground[ht.y][ht.x].mined) {
+        affectedTile = data.ground[ht.y][ht.x];
+        if (ht.isBeingMined) {
+            drawRectCentered(ht.x * tileSize, (height - groundHeight) + ht.y * tileSize , tileSize, tileSize * (affectedTile.maxHp - affectedTile.hp)/ affectedTile.maxHp, "fill");
+        }
+        drawRectCentered(ht.x * tileSize, (height - groundHeight) + ht.y * tileSize , tileSize, tileSize, "stroke");    
+    }
+
     for(var i  = 0; i < data.players.length; i ++) {
         if (data.players[i].facingLeft)
             usedGoblin = goblinL;
@@ -97,33 +120,34 @@ socket.on('newPositions', function(data) {
     drawRectCentered(myX - characterWidth * hitboxRatioXHalf, myY - characterHeight / 2 * (1 - hitboxRatioUpperHalf),
                 characterWidth * 2 * hitboxRatioXHalf, characterHeight * (0.5 + 0.5 * hitboxRatioUpperHalf), "stroke")
     //hitbox
-
-    
-    for (var i = 0; i < groundHeight / tileSize; i ++) {
-        for (var j = 0; j < groundWidth / tileSize; j ++) {
-            if (!data.ground[i][j].mined && tileMicrowaveBackground(i,j)) {
-                drawImageCentered(tile, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);   
-            }
-        }
-    }
-    ht = data.personal.hoveredTile;
-    if (ht.enabled && !data.ground[ht.y][ht.x].mined) {
-        affectedTile = data.ground[ht.y][ht.x];
-        if (ht.isBeingMined) {
-            drawRectCentered(ht.x * tileSize, (height - groundHeight) + ht.y * tileSize , tileSize, tileSize * (affectedTile.maxHp - affectedTile.hp)/ affectedTile.maxHp, "fill");
-        }
-        drawRectCentered(ht.x * tileSize, (height - groundHeight) + ht.y * tileSize , tileSize, tileSize, "stroke");    
-    }
 });
 
 
 document.body.onmousedown = function(event) {
-    socket.emit('mouseDown');
+    switch (event.which) {
+        case 1:
+            socket.emit('mouseDown');
+            break;
+        case 3:
+            socket.emit('rightClick');
+            break;
+        default:
+            console.log('middleClick');
+    }
 }
 
 document.body.onmouseup = function(event) {
-    mousePressed = false;
-    socket.emit('mouseUp');
+    switch (event.which) {
+        case 1:
+            mousePressed = false;
+            socket.emit('mouseUp');
+            break;
+        case 3:
+            socket.emit('rightClickUp');
+            break;
+        default:
+            console.log('middleClick up');
+    }
 }
 
 document.onmousemove = function(event) {

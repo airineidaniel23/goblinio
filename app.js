@@ -43,6 +43,7 @@ var Player = function(id) {
         mouseX: width/2,
         mouseY: height/2,
         mousePressed: false,
+        rclickPressed: false,
         jumping: false,
         facingLeft: false,
         speed: 0, //vertical
@@ -139,10 +140,13 @@ for (let i = 0; i < gridHeight; i++) {
       mined: false,  // Whether this tile has been mined or not
       value: 0, // The value of this tile (e.g. ore amount)
       hp: 1,
-      maxHp: 1   
+      maxHp: 1,
+      scaffold: false
     };
   }
 }
+
+var groundMined = [];
 
 var io = require('socket.io')(serv, {});
 io.sockets.on('connection', function(socket) { // aici tratez incoming
@@ -188,6 +192,14 @@ io.sockets.on('connection', function(socket) { // aici tratez incoming
         player.mousePressed = false;
     });
 
+    socket.on('rightClick', function(data) {
+        player.rclickPressed = true;
+    });
+
+    socket.on('rightClickUp', function(data) {
+        player.rclickPressed = false;
+    });
+
     socket.on('sendChat', function(data) {
         player.chat = data.content;
         player.chatTTL = 25;
@@ -213,6 +225,17 @@ setInterval(function() { //aici tratez emitting
         });
     }
 
+    for(var t in groundMined) {
+        var tempGroundMined = groundMined[t];
+        if (!ground[tempGroundMined.y][tempGroundMined.x].scaffold) {
+            if (tempGroundMined.ttl < 0) {
+                ground[tempGroundMined.y][tempGroundMined.x].mined = false;
+                ground[tempGroundMined.y][tempGroundMined.x].hp = ground[tempGroundMined.y][tempGroundMined.x].maxHp;
+                delete groundMined[t];
+            } else groundMined[t].ttl--;
+        }
+    }
+
     var serverData = {
         players: pack,
         ground: ground //sa trimit doar groundul din jurul unui player sa nu hackeze fov mai mare
@@ -222,13 +245,18 @@ setInterval(function() { //aici tratez emitting
         var socket = socket_list[i];
         serverData.personal = player_list[socket.id];
         let ht = serverData.personal.hoveredTile;
-        if (ht.enabled) {
-            ht.isBeingMined = detectMining(serverData.personal);
-            if (ground[ht.y][ht.x].hp == 0) {
-                ground[ht.y][ht.x].mined = true;
-                ht.enabled = false;
-            } else if (ht.isBeingMined) {
-                ground[ht.y][ht.x].hp--;
+        if (ht.enabled && !ground[ht.y][ht.x].scaffold) {
+            if (!ground[ht.y][ht.x].mined) {
+                ht.isBeingMined = detectTileActivation(serverData.personal) && serverData.personal.mousePressed;
+                if (ht.isBeingMined) {
+                    ground[ht.y][ht.x].hp--;
+                    if (ground[ht.y][ht.x].hp == 0) {
+                        ground[ht.y][ht.x].mined = true;
+                        groundMined.push({x: ht.x, y: ht.y, ttl: 100});
+                    }
+                }
+            } else {
+                ground[ht.y][ht.x].scaffold = detectTileActivation(serverData.personal) && serverData.personal.rclickPressed;
             }
         }
 
@@ -349,12 +377,13 @@ function mouseMoved(player) {
     }
 }
 
-function detectMining(player) { //hoveredTile mousePressed from server
+function detectTileActivation(player) { //hoveredTile mousePressed from server
     if ((player.x < tileSize) && (player.hoveredTile.x == gridWidth - 1)) {
         xDist = player.x + groundWidth - (player.hoveredTile.x * tileSize + tileSize/2);
     } else if ((player.x > groundWidth - tileSize) && (player.hoveredTile.x == 0)) { 
         xDist = player.x - groundWidth - (player.hoveredTile.x * tileSize + tileSize/2);
     } else xDist = player.x  - (player.hoveredTile.x * tileSize + tileSize/2);
     yDist = player.y  - ((height - groundHeight) + player.hoveredTile.y * tileSize + tileSize/2);
-    return (Math.sqrt(xDist * xDist + yDist * yDist) < 100)  && player.mousePressed && player.hoveredTile.enabled;
+    return (Math.sqrt(xDist * xDist + yDist * yDist) < 100) && player.hoveredTile.enabled;
 }
+
