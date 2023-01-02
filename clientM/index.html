@@ -119,6 +119,7 @@ socket.on('newPositions', function(data) {
     drawRectCentered(data.personal.mouseX, data.personal.mouseY, 15, 15, "fill");
     drawRectCentered(myX - characterWidth * hitboxRatioXHalf, myY - characterHeight / 2 * (1 - hitboxRatioUpperHalf),
                 characterWidth * 2 * hitboxRatioXHalf, characterHeight * (0.5 + 0.5 * hitboxRatioUpperHalf), "stroke")
+    
     //hitbox
 });
 
@@ -339,5 +340,18 @@ function drawPickaxe(fl, mp, pl) {//facing left and mouse pressed
  
     }
     else timeMined = 0;
+}
+
+function drawShadow(x, y) {
+    const gradient = ctx.createRadialGradient(x  + centerOffsetX(), y + (screenHeight / 2 - myY),
+                                              0, x  + centerOffsetX(), y + (screenHeight / 2 - myY), 300);
+    // Add three color stops
+    gradient.addColorStop(0, "transparent");
+    gradient.addColorStop(1, "black");
+
+    // Set the fill style and draw a rectangle
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x  + centerOffsetX() - screenWidth /2 + characterWidth / 2,
+                 y + (screenHeight / 2 - myY) - screenHeight / 2 + characterHeight / 2, screenWidth, screenHeight);
 }
 </script>

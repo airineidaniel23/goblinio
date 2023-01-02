@@ -13,6 +13,7 @@ console.log("Server started");
 var socket_list = {};
 var player_list = {};
 var pack = [];
+var playersTiles = [];
 
 var tr = 0;
 const screenWidth = 1300;
@@ -208,6 +209,7 @@ io.sockets.on('connection', function(socket) { // aici tratez incoming
 
 setInterval(function() { //aici tratez emitting
     pack = [];
+    playersTiles = [];
     for (var i in player_list) {
         var tempPlayer = player_list[i];
         tempPlayer.updatePosition();
@@ -228,11 +230,13 @@ setInterval(function() { //aici tratez emitting
     for(var t in groundMined) {
         var tempGroundMined = groundMined[t];
         if (!ground[tempGroundMined.y][tempGroundMined.x].scaffold) {
-            if (tempGroundMined.ttl < 0) {
-                ground[tempGroundMined.y][tempGroundMined.x].mined = false;
-                ground[tempGroundMined.y][tempGroundMined.x].hp = ground[tempGroundMined.y][tempGroundMined.x].maxHp;
-                delete groundMined[t];
-            } else groundMined[t].ttl--;
+            if (!playersTiles.includes(tempGroundMined.x + tempGroundMined.y * gridWidth)) {
+                if (tempGroundMined.ttl < 0) {
+                    ground[tempGroundMined.y][tempGroundMined.x].mined = false;
+                    ground[tempGroundMined.y][tempGroundMined.x].hp = ground[tempGroundMined.y][tempGroundMined.x].maxHp;
+                    delete groundMined[t];
+                } else groundMined[t].ttl--;
+            }
         }
     }
 
@@ -259,11 +263,10 @@ setInterval(function() { //aici tratez emitting
                 ground[ht.y][ht.x].scaffold = detectTileActivation(serverData.personal) && serverData.personal.rclickPressed;
             }
         }
-        useless = [];
-        
+
         socket.emit('newPositions', serverData);
     }
-}, 25);
+}, 30);
 
 
 
@@ -295,8 +298,8 @@ function checkGroundUnder(player) { //return Y of tile(s) that player is standin
 
 
 //does not work for tiles that are cycled more then one tile size, so you cant use it for mouse,
-//but you can use it for character
-function pointInTile(x, y, accessor) {  //returns X/Y of tile which includes the point, false otherwise
+//but you can use it for character --- edit -- dont know what that means dumbass
+function pointInTile(x, y, accessor) {  //returns X/Y of tile which includes the point, false otherwise (false if tile is mined)
     if (x < -tileSize || x >= (gridWidth + 1)* tileSize)
         return false;
     if (y < height - groundHeight || y >= height)
@@ -306,11 +309,14 @@ function pointInTile(x, y, accessor) {  //returns X/Y of tile which includes the
     if (x >= gridWidth * tileSize)
         x -= width;
     tileX = Math.floor(x/ tileSize); //these are tileNo, not actual coord
-    
     tileY = Math.floor((y - (height - groundHeight))/ tileSize);
-    
-    if (ground[tileY][tileX].mined)
+
+    playersTiles.push((tileY - 1) * gridWidth + tileX);
+    playersTiles.push((tileY - 2) * gridWidth + tileX);
+    playersTiles.push((tileY) * gridWidth + tileX);
+    if (ground[tileY][tileX].mined) {
         return false;
+    }
 
     if (accessor != "x")
         return (height - groundHeight) + tileY * tileSize;
