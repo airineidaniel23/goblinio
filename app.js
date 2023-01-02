@@ -31,6 +31,22 @@ var gridWidth = groundWidth / tileSize; // adimensionala
 var gridHeight = groundHeight / tileSize;
 var tileX, tileY;
 
+var tileTypes = [
+    {name: "diamond",
+    maxHp: 1000,
+    value: 1000},
+    {name: "emerald",
+    maxHp: 100,
+    value: 100},
+    {name: "gold",
+    maxHp: 500,
+    value: 500},
+    {name: "dirt",
+    maxHp: 1,
+    value: 10},
+    
+]
+
 var Player = function(id) {
     var self = {
         x: width/2,
@@ -137,11 +153,13 @@ var ground = [];
 for (let i = 0; i < gridHeight; i++) {
   ground[i] = [];
   for (let j = 0; j < gridWidth; j++) {
+    var type = getRandomTile();
     ground[i][j] = {
       mined: false,  // Whether this tile has been mined or not
-      value: 0, // The value of this tile (e.g. ore amount)
-      hp: 1,
-      maxHp: 1,
+      value: type.value, // The value of this tile (e.g. ore amount)
+      hp: type.maxHp,
+      maxHp: type.maxHp,
+      type: type.name,
       scaffold: false
     };
   }
@@ -394,3 +412,15 @@ function detectTileActivation(player) { //hoveredTile mousePressed from server
     return (Math.sqrt(xDist * xDist + yDist * yDist) < 100) && player.hoveredTile.enabled;
 }
 
+function getRandomTile() {
+    var max = 1000;
+    var min = 1;
+    var res = Math.floor(Math.random() * (max - min + 1) + min);
+    if (res > 30)
+        return tileTypes[3];
+    if (res > 12)
+        return tileTypes[2];
+    if (res > 2)
+        return tileTypes[1];
+    return tileTypes[0];
+}

@@ -29,6 +29,15 @@ text-align:center;
 <img id="tile" src="clientM/img/tile.png" width="80" height="80" />
 </div>
 <div style="display:none;">
+<img id="tileDiamond" src="clientM/img/tileDiamond.png" width="80" height="80" />
+</div>
+<div style="display:none;">
+<img id="tileEmerald" src="clientM/img/tileEmerald.png" width="80" height="80" />
+</div>
+<div style="display:none;">
+<img id="tileGold" src="clientM/img/tileGold.png" width="80" height="80" />
+</div>
+<div style="display:none;">
 <img id="tilesc" src="clientM/img/tilesc.png" width="80" height="80" />
 </div>
 <div style="display:none;">
@@ -70,6 +79,9 @@ var goblinR = document.getElementById("sourceR");
 var goblinL = document.getElementById("sourceL");
 var jungle = document.getElementById("jungle");
 var tile = document.getElementById("tile");
+var tileDiamond = document.getElementById("tileDiamond");
+var tileGold = document.getElementById("tileGold");
+var tileEmerald = document.getElementById("tileEmerald");
 var tilesc = document.getElementById("tilesc");
 var pickaxeL = document.getElementById("pickaxeL");
 var pickaxeR = document.getElementById("pickaxeR");
@@ -88,7 +100,14 @@ socket.on('newPositions', function(data) {
     for (var i = 0; i < groundHeight / tileSize; i ++) {
         for (var j = 0; j < groundWidth / tileSize; j ++) {
             if (!data.ground[i][j].mined && tileMicrowaveBackground(i,j)) {
-                drawImageCentered(tile, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);   
+                if (data.ground[i][j].type == "dirt")
+                    drawImageCentered(tile, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);   
+                else if (data.ground[i][j].type == "diamond") 
+                    drawImageCentered(tileDiamond, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);   
+                else if (data.ground[i][j].type == "emerald") 
+                    drawImageCentered(tileEmerald, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);   
+                else if (data.ground[i][j].type == "gold") 
+                    drawImageCentered(tileGold, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);   
             } else if (data.ground[i][j].mined && data.ground[i][j].scaffold && tileMicrowaveBackground(i,j)) {
                 drawImageCentered(tilesc, j * tileSize, (height - groundHeight) + i * tileSize , tileSize, tileSize);   
             }
