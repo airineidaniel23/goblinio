@@ -221,7 +221,7 @@ io.sockets.on('connection', function(socket) { // aici tratez incoming
 
     socket.on('sendChat', function(data) {
         player.chat = data.content;
-        player.chatTTL = 25;
+        player.chatTTL = 100;
     });
 });
 
